@@ -1,16 +1,17 @@
-       *************************************
-	   * Incoming data copy of client record
-	   * for use in PROCDLTA program for 
-	   * processing of client delta FILE
-	   *
-	   * Incoming IPROCESS field is indicator
-	   * of what transaction type for record.
-	   *
-	   * 07/01/25  Author : JMelton
-	   **************************************
-	    01  INCLNTREC.
-           02  IPROCESS         PIC 9(2).
-           02  ICLNTIDEN         PIC 9(5).
+      *************************************
+	  * Incoming data copy of client record
+	  * for use in PROCDLTA program for 
+      * processing of client delta FILE
+	  *
+	  * Incoming IPROCESS field is indicator
+	  * of what transaction type for record.
+	  *
+	  * 07/01/25  Author : JMelton
+	  **************************************
+ 	   01  INCLNTREC.
+           02  IPROCESS         PIC 9(1).
+           02  ICLNTIDEN        PIC 9(5).
+		   02  ICLNTRECTYPE     PIC 9(2).
            02  ICLNTFNAME       PIC X(15).
            02  ICLNTMNAME       PIC X(15).
            02  ICLNTLNAME       PIC X(25).

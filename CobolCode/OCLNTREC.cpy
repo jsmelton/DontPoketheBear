@@ -1,13 +1,14 @@
-       *************************************
-	   * Outgoing data copy of client record
-	   * for use in PROCCLNT program 
-	   * read/update/delete of client FILE
-	   * 07/01/25  Author : JMelton
-	   **************************************
-        01  OUTCLNTREC.
-		   02  OBATCH-SW        PIC X(01).
+      *************************************
+	  * Outgoing data copy of client record
+	  * for use in PROCCLNT program 
+      * read/update/delete of client FILE
+      * 07/01/25  Author : JMelton
+	  **************************************
+       01  OUTCLNTREC.
+		   02  OBATCH-SW        PIC X(1).
            02  OPROCESS         PIC 9(2).
            02  OCLNTIDEN        PIC 9(5).
+		   02  OCLNTRECTYPE     PIC 9(2).
            02  OCLNTFNAME       PIC X(15).
            02  OCLNTMNAME       PIC X(15).
            02  OCLNTLNAME       PIC X(25).
