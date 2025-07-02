@@ -1,0 +1,88 @@
+        IDENTIFICATION DIVISION.
+        PROGRAM-ID. CMPRCLNT.
+        ENVIRONMENT DIVISION.
+        INPUT-OUTPUT SECTION.
+        FILE-CONTROL.
+			SELECT DEMO ASSIGN TO AS-CLNTFILE.
+			SELECT DELTA ASSIGN TO "/upload/delta.txt"
+			FILE STATUS IS FILE-STATUS.
+	  *************************************************
+	  * Program used to process the Client Delta file 
+	  * for nighly updates of the Client file.
+	  * Calls program PROCCLNT to write data to file.
+	  *
+	  * Date        Author   Description
+	  * 07/01/2025  JMelton   Initial program version
+	  **************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD DELTA.
+		  01 INCLNTREC
+			 COPY ICLNTREC.
+	   FD DEMO.
+       01 CLNTREC.
+           COPY OCLNTREC.
+       WORKING-STORAGE SECTION.
+	   01 FILE-STATUS   PIC X(02) VALUE ZERO.
+       01 PROCESS       PIC 99    VALUE ZERO.
+       01 CLNTIDEN      PIC 9(5)  VALUE ZERO.
+	   01 ERROR-MESSAGE.
+		  05 FILLER          PIC X(14) VALUE 'FILE STATUS -'.
+		  05 ERR-FILE-STATUS PIC X(02).
+		  05 FILLER          PIC X(12) VALUE ' CLIENT ID -'.
+		  05 ERR-CLNT-ID     PIC X(05).
+		  05 FILLER          PIC X(13) VALUE 'TRANSACTION -'. 
+		  05 ERR-CLNT-PROC   PIC X(02).
+		   
+	  *******COPY OCLNTREC FOR CALLED PROGRAM PROCCLNT
+	      COPY 'OCLNTREC'.
+		   
+       PROCEDURE DIVISION.
+      
+		
+	   1000-MAIN.
+		
+		   PERFORM 2000-OPEN-FILES THRU 2000-OPEN-INPUT-EXIT.
+			
+			  MOVE IPROCESS TO PROCESS.
+			  MOVE ICLNTIDEN TO CLNTIDEN.
+				
+		   PERFORM 3000-READ-DELTA THRU 3000-READ-DELTA-EXIT.
+			
+		   PERFORM
+		
+	   1000-MAIN-EXIT.
+		   EXIT.
+			
+	  ********IS THE DEMO FILE INDEXED? IF SO DO START
+      ********MOVE ICLNTIDEN TO CALL FIELD FOR READ OR 
+      ********SIMPLY DO A READ TO FIND IDENTIFIER CLNTIDEN	   
+	   2000-OPEN-FILES.
+		   OPEN INPUT DELTA.
+        
+           PERFORM UNTIL WS-EOF='Y'
+              READ FILE-1 INTO WS-FILE-1
+                  AT END MOVE 'Y' TO WS-EOF
+              END-READ
+           END-PERFORM.
+           OPEN INPUT FILE-2.
+           PERFORM UNTIL WS-EOF-2='Y'
+              READ FILE-2 INTO WS-FILE-2
+                  AT END MOVE 'Y' TO WS-EOF-2
+                  DISPLAY FILE-2-FIELD1 FILE-2-FIELD2
+              END-READ
+           END-PERFORM.
+		
+	   2000-OPEN-FILES-EXIT.
+		   EXIT.
+			
+	   3000-READ-DELTA.
+		
+		   MOVE SPACES TO OCLNTREC.
+		   MOVE ICLNTREC TO OCLNTREC.
+			
+			CALL 'PROCCLNT'
+			   USING OCLNTREC.
+		
+	   3000-READ-DELTA-EXIT.
+		   EXIT.
