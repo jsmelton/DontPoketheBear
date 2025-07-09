@@ -1,0 +1,107 @@
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. CMPRCLNT.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+			
+			SELECT DEMO ASSIGN TO AS-CLNTFILE
+			ACCESS IS DYNAMIC.
+			
+			SELECT DELTA ASSIGN TO "/upload/delta.txt"
+			FILE STATUS IS FILE-STATUS.
+	  ************************************************
+	  * Program used to process the Client Delta file 
+	  * for nighly updates of the Client file.
+	  * Calls program PROCCLNT to write data to file.
+	  *
+	  * Date        Author   Description
+	  * 07/01/2025  JMelton   Initial program version
+	  **************************************************
+       DATA DIVISION.
+       FILE SECTION.
+       FD DELTA
+		  LABEL RECORDS ARE STANDARD
+		  RECORD CONTAINS 480 CHARACTERS.
+	   01 INCLNTREC
+		   COPY ICLNTREC.
+	   
+	   FD DEMO
+       01 CLNTREC.
+           COPY OCLNTREC.
+       WORKING-STORAGE SECTION.
+	   01 WS-EOF        PIC X(01) VALUE 'N'.
+	   01 WS-END-OF-POL PIC X(01) VALUE 'N'.
+	   01 FILE-STATUS   PIC X(02) VALUE ZERO.
+       01 PROCESS       PIC 99    VALUE ZERO.
+       01 CLNTIDEN      PIC 9(5)  VALUE ZERO.
+	   01 ERROR-MESSAGE.
+		  05 FILLER          PIC X(14) VALUE 'FILE STATUS -'.
+		  05 ERR-FILE-STATUS PIC X(02).
+		  05 FILLER          PIC X(12) VALUE ' CLIENT ID -'.
+		  05 ERR-CLNT-ID     PIC X(05).
+		  05 FILLER          PIC X(13) VALUE 'TRANSACTION -'. 
+		  05 ERR-CLNT-PROC   PIC X(02).
+		  05 FILLER          PIC X(17) VALUE ' ERROR MESSAGE -'.
+		  05 ERR-MESSAGE     PIC X(50). 
+		   
+	  *******COPY OCLNTREC FOR CALLED PROGRAM PROCCLNT
+	      COPY 'OCLNTREC'.
+		   
+       PROCEDURE DIVISION.
+      
+		
+	   1000-MAIN.
+		
+		   PERFORM 2000-OPEN-FILES THRU 2000-OPEN-INPUT-EXIT.
+			
+			  MOVE IPROCESS TO PROCESS.
+			  MOVE ICLNTIDEN TO CLNTIDEN.
+		      
+		   PERFORM 2500-READ-DELTA THRU 2500-READ-DELTA-EXIT.
+				
+		   PERFORM 3000-CALL-PROCCLNT THRU 3000-CALL-PROCCLNT-EXIT.
+			
+		   PERFORM
+		
+	   1000-MAIN-EXIT.
+		   EXIT.
+			
+	  ********IS THE DEMO FILE INDEXED? IF SO DO START
+      ********MOVE ICLNTIDEN TO CALL FIELD FOR READ OR 
+      ********SIMPLY DO A READ TO FIND IDENTIFIER CLNTIDEN	   
+	   2000-OPEN-FILES.
+		   
+           OPEN INPUT DELTA
+           IF FILE-STATUS NOT EQUAL = '00'
+		       MOVE FILE-STATUS TO ERR-FILE-STATUS
+			   MOVE CLNTIDEN TO ERR-CLNT-ID
+			   MOVE IPROCESS TO ERR-CLNT-PROC
+		       MOVE 'ERROR ON OPENING OF DELTA FILE' 
+			  PERFORM 3005-ERR-PROCESS THRU 3005-ERR-PROCESS-EXIT
+           ELSE 
+              OPEN INPUT DEMO		   
+		
+	   2000-OPEN-FILES-EXIT.
+		   EXIT.
+		   
+	   2500-READ-DELTA.
+	   
+	       PERFORM UNTIL WS-EOF = 'Y'
+              READ DELTA INTO ICLNTREC
+                  AT END MOVE 'Y' TO WS-EOF
+              END-READ
+           END-PERFORM.
+	   
+	   2500-READ-DELTA-EXIT.
+	       EXIT.
+			
+	   3000-CALL-PROCCLNT.
+		
+		   MOVE SPACES TO OCLNTREC.
+		   MOVE ICLNTREC TO OCLNTREC.
+			
+			CALL 'PROCCLNT'
+			   USING OCLNTREC.
+		
+	   3000-CALL-PROCCLNT-EXIT.
+		   EXIT.

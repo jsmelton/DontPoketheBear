@@ -5,7 +5,7 @@
       * 07/01/25  Author : JMelton
 	  **************************************
        01  OUTCLNTREC.
-		   02  OBATCH-SW        PIC X(1).
+		   02  OBATCH-SW        PIC X(1) VALUE 'N'.
            02  OPROCESS         PIC 9(2).
            02  OCLNTIDEN        PIC 9(5).
 		   02  OCLNTRECTYPE     PIC 9(2).
