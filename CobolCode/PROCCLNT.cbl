@@ -78,11 +78,11 @@
                 ADD 1 TO PROCESS
                 GO TO 0002.
        2WRITE.
-`                 OPEN EXTEND DEMO.
-                  ACCEPT CLNTREC.
-				     PERFORM 7DATEFRMT THRU 7DATEFRMT-EXIT.
-                  WRITE CLNTREC.
-                  GO 000X.
+                OPEN EXTEND DEMO.
+                ACCEPT CLNTREC.
+    		     PERFORM 7DATEFRMT THRU 7DATEFRMT-EXIT.
+                 WRITE CLNTREC.
+                GO 000X.
        3REWRITE.
                 OPEN I-O DEMO.
 				IF OBATCH-SW = 'N'
