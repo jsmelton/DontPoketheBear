@@ -103,7 +103,7 @@
                    4DELETE.
                       OPEN I-O DEMO.
 			    IF OBATCH-SW = 'N'
-				   DISPLAY "ENTER RECORD NO TO BE DELETED"
+				   DISPLAY "ENTER RECORD NUM TO BE DELETED"
                       ACCEPT CLNTIDEN
        0004.
                 READ DEMO AT END DISPLAY "CLNTIDEN NOT FOUND" GO 000X.

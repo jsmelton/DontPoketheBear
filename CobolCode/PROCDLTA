@@ -10,7 +10,7 @@
 	  * Program used to process the Client Delta file 
 	  * for nighly updates of the Client file.
 	  * Calls program PROCCLNT to write data to file.
-	  *
+	  * Record length 498 chars
 	  * Date        Author   Description
 	  * 07/01/2025  JMelton   Initial program version
 	  **************************************************
@@ -23,9 +23,14 @@
        01 CLNTREC.
            COPY OCLNTREC.
        WORKING-STORAGE SECTION.
+	   01 WS-EOF        PIC X(01) VALUE 'N'.
 	   01 FILE-STATUS   PIC X(02) VALUE ZERO.
        01 PROCESS       PIC 99    VALUE ZERO.
        01 CLNTIDEN      PIC 9(5)  VALUE ZERO.
+	   01 WS-STATUS     PIC 9(02) VALUE ZERO.
+	   01 WS-COUNT      PIC 9(07) VALUE ZERO.
+	   01 EOF-MESSAGE.
+		  05 FILLER          PIX X(40) VALUE 'OB COMPLETED SUCCESSFULLY, RECORDS PROCESSED = ' WS-COUNT.
 	   01 ERROR-MESSAGE.
 		  05 FILLER          PIC X(14) VALUE 'FILE STATUS -'.
 		  05 ERR-FILE-STATUS PIC X(02).
@@ -33,6 +38,7 @@
 		  05 ERR-CLNT-ID     PIC X(05).
 		  05 FILLER          PIC X(13) VALUE 'TRANSACTION -'. 
 		  05 ERR-CLNT-PROC   PIC X(02).
+		  05 ERR-CLNT-MSG    PIC X(50).
 		   
 	  *******COPY OCLNTREC FOR CALLED PROGRAM PROCCLNT
 	      COPY 'OCLNTREC'.
@@ -58,31 +64,59 @@
       ********MOVE ICLNTIDEN TO CALL FIELD FOR READ OR 
       ********SIMPLY DO A READ TO FIND IDENTIFIER CLNTIDEN	   
 	   2000-OPEN-FILES.
+	   
 		   OPEN INPUT DELTA.
-        
-           PERFORM UNTIL WS-EOF='Y'
-              READ FILE-1 INTO WS-FILE-1
-                  AT END MOVE 'Y' TO WS-EOF
-              END-READ
-           END-PERFORM.
-           OPEN INPUT FILE-2.
-           PERFORM UNTIL WS-EOF-2='Y'
-              READ FILE-2 INTO WS-FILE-2
-                  AT END MOVE 'Y' TO WS-EOF-2
-                  DISPLAY FILE-2-FIELD1 FILE-2-FIELD2
-              END-READ
-           END-PERFORM.
-		
+		   IF WS-STATUS NOT EQUAL '00'									`
+		      MOVE WS-STATUS TO ERR-FILE-STATUS
+			  MOVE ICLNTIDEN TO ERR-CLNT-ID
+			  MOVE IPROCESS TO ERR-CLNT-PROC
+			  MOVE 'ERROR ON OPENING FILE IN 2000 PARAGRAPH' TO ERR-CLNT-MSG
+			  MOVE 'Y' TO WS-EOF
+			  DISPLAY WS-ERROR-MESSAGE
+		   END-IF.
+		   
+		   OPEN OUTPUT DEMO.
+           IF WS-STATUS NOT EQUAL '00'									`
+		      MOVE WS-STATUS TO ERR-FILE-STATUS
+			  MOVE ICLNTIDEN TO ERR-CLNT-ID
+			  MOVE IPROCESS TO ERR-CLNT-PROC
+			  MOVE 'ERROR ON OPENING FILE IN 2000 PARAGRAPH' TO ERR-CLNT-MSG
+			  MOVE 'Y' TO WS-EOF
+			  DISPLAY WS-ERROR-MESSAGE
+		   END-IF.
+			  
 	   2000-OPEN-FILES-EXIT.
 		   EXIT.
 			
 	   3000-READ-DELTA.
-		
+	   
+		   IF WS-EOF = 'Y'
+			  PERFORM 3500-CLOSE-JOB THRU 3500-CLOSE-JOB-EXIT
+		   END-IF.
+		   
 		   MOVE SPACES TO OCLNTREC.
 		   MOVE ICLNTREC TO OCLNTREC.
 			
 			CALL 'PROCCLNT'
 			   USING OCLNTREC.
+			   
+			IF WS-STATUS NOT EQUAL '00'									`
+		      MOVE WS-STATUS TO ERR-FILE-STATUS
+			  MOVE ICLNTIDEN TO ERR-CLNT-ID
+			  MOVE IPROCESS TO ERR-CLNT-PROC
+			  MOVE 'ERROR ON PROCCLNT CALL IN 3000 PARAGRAPH' TO ERR-CLNT-MSG
+			  MOVE 'Y' TO WS-EOF
+			  DISPLAY WS-ERROR-MESSAGE
+		   END-IF.
 		
 	   3000-READ-DELTA-EXIT.
 		   EXIT.
+		   
+	   3500-CLOSE-JOB.
+	   
+		  CLOSE DELTA.
+		  CLOSE DEMO.
+		  DISPLAY EOF-MESSAGE.
+	   
+	   3500-CLOSE-JOB-EXIT.
+	       EXIT.
